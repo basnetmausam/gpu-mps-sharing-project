@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "common_utils.cuh"
 
-#define N 512
+#define N 4096
 
 __global__ void matrixMulKernel(float *A, float *B, float *C) {
     int row = blockIdx.y * blockDim.y + threadIdx.y;

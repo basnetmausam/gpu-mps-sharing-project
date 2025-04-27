@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include "common_utils.cuh"
 
-#define SIZE (1 << 26) // ~64MB
-
+int size = (50 * 1024 * 1024) / sizeof(float); // ~50MB
+#define SIZE size
 int main() {
     float *h_data, *d_data;
     CUDA_CHECK(cudaMallocHost(&h_data, SIZE * sizeof(float)));

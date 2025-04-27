@@ -1,5 +1,5 @@
 #!/bin/bash
-# light-light mixture without MPS
+# run_mixture_light_light_no_mps.sh
 
 set -e
 
@@ -7,16 +7,12 @@ SRC_DIR="../src"
 RESULTS_DIR="../results/mixtures/light_light/no_mps"
 mkdir -p "$RESULTS_DIR"
 
-./stop_mps.sh
-
 start_total=$(date +%s.%N)
 
-(
-    $SRC_DIR/vector_add > "$RESULTS_DIR/vector_add.log" 2>&1
-) &
-(
-    $SRC_DIR/prefix_sum > "$RESULTS_DIR/prefix_sum.log" 2>&1
-) &
+# Launch 24 vector_add concurrently
+for i in {1..24}; do
+    $SRC_DIR/vector_add > "$RESULTS_DIR/vector_add_$i.log" 2>&1 &
+done
 
 wait
 

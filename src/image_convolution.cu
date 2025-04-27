@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include "common_utils.cuh"
 
-#define WIDTH 1024
-#define HEIGHT 1024
+#define WIDTH 256
+#define HEIGHT 256
 
 __global__ void convolution2D(float *input, float *output, float *mask) {
     int col = blockIdx.x * blockDim.x + threadIdx.x;

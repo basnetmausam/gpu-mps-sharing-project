@@ -2,7 +2,7 @@
 #include <cufft.h>
 #include "common_utils.cuh"
 
-#define N 1024
+#define N 16384
 
 int main() {
     cufftHandle plan;

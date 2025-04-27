@@ -1,14 +1,10 @@
 #!/bin/bash
-# heavy-heavy mixture with MPS
 
 set -e
 
 SRC_DIR="../src"
 RESULTS_DIR="../results/mixtures/heavy_heavy/mps"
 mkdir -p "$RESULTS_DIR"
-
-./stop_mps.sh
-./start_mps.sh
 
 start_total=$(date +%s.%N)
 
@@ -25,5 +21,3 @@ end_total=$(date +%s.%N)
 runtime_total=$(echo "$end_total - $start_total" | bc)
 
 echo "$runtime_total" > "$RESULTS_DIR/total_time.txt"
-
-./stop_mps.sh

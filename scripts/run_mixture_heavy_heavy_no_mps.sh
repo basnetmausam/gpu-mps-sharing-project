@@ -1,13 +1,10 @@
 #!/bin/bash
-# heavy-heavy mixture without MPS
 
 set -e
 
 SRC_DIR="../src"
 RESULTS_DIR="../results/mixtures/heavy_heavy/no_mps"
 mkdir -p "$RESULTS_DIR"
-
-./stop_mps.sh
 
 start_total=$(date +%s.%N)
 

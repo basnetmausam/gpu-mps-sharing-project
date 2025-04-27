@@ -4,12 +4,13 @@
 set -e
 
 echo "==============================="
-echo "Running ALL mixture experiments"
+echo "Running ALL NEW mixture experiments"
 echo "==============================="
 
 SRC_DIR="../src"
 RESULTS_DIR="../results/mixtures"
-MIXTURES=("heavy_heavy" "heavy_light" "memory_heavy" "light_light" "heavy_memory_light")
+MIXTURES=("heavy_heavy" "memory_compute" "light_heavy" "memory_memory" "light_light" "many_light_light" "many_heavy_heavy")
+
 
 # ----------------------------------------
 # Step 1: Clean Start — Make sure MPS is OFF
