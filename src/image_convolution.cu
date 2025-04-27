@@ -1,93 +1,65 @@
-// src/image_convolution.cu
+#include <stdio.h>
 #include "common_utils.cuh"
-#include <iostream>
-#include <cstdlib>
 
-static const int WIDTH  = 1024;
-static const int HEIGHT = 1024;
-static const int KSIZE  = 3;
+#define WIDTH 1024
+#define HEIGHT 1024
 
-// Kernel with a small fixed-size convolution filter loaded into constant memory
-__constant__ float d_kernel[KSIZE * KSIZE];
+__global__ void convolution2D(float *input, float *output, float *mask) {
+    int col = blockIdx.x * blockDim.x + threadIdx.x;
+    int row = blockIdx.y * blockDim.y + threadIdx.y;
 
-__global__ void convolutionKernel(const float* input, float* output, int width, int height) {
-    int x = blockIdx.x * blockDim.x + threadIdx.x;
-    int y = blockIdx.y * blockDim.y + threadIdx.y;
-    if (x >= width || y >= height) return;
-
-    float sum = 0.0f;
-    int half = KSIZE / 2;
-    for (int ky = -half; ky <= half; ++ky) {
-        for (int kx = -half; kx <= half; ++kx) {
-            int ix = min(max(x + kx, 0), width - 1);
-            int iy = min(max(y + ky, 0), height - 1);
-            sum += input[iy * width + ix]
-                 * d_kernel[(ky + half) * KSIZE + (kx + half)];
+    if (row < HEIGHT && col < WIDTH) {
+        float sum = 0.0f;
+        for (int i = -1; i <= 1; i++) {
+            for (int j = -1; j <= 1; j++) {
+                int r = row + i;
+                int c = col + j;
+                if (r >= 0 && r < HEIGHT && c >= 0 && c < WIDTH) {
+                    sum += input[r * WIDTH + c] * mask[(i+1)*3 + (j+1)];
+                }
+            }
         }
+        output[row * WIDTH + col] = sum;
     }
-    output[y * width + x] = sum;
 }
 
 int main() {
     size_t bytes = WIDTH * HEIGHT * sizeof(float);
+    float *h_input, *h_output, *h_mask;
+    CUDA_CHECK(cudaMallocHost(&h_input, bytes));
+    CUDA_CHECK(cudaMallocHost(&h_output, bytes));
+    CUDA_CHECK(cudaMallocHost(&h_mask, 9 * sizeof(float)));
 
-    // Allocate host memory
-    float *h_in  = (float*)malloc(bytes);
-    float *h_out = (float*)malloc(bytes);
-
-    // Initialize input with random values
-    for (int i = 0; i < WIDTH * HEIGHT; ++i) {
-        h_in[i] = static_cast<float>(rand()) / RAND_MAX;
+    for (int i = 0; i < WIDTH * HEIGHT; i++) {
+        h_input[i] = 1.0f;
+    }
+    for (int i = 0; i < 9; i++) {
+        h_mask[i] = 1.0f / 9.0f;
     }
 
-    // Define a simple 3x3 Gaussian blur kernel on host
-    float h_kernel[KSIZE * KSIZE] = {
-        1, 2, 1,
-        2, 4, 2,
-        1, 2, 1
-    };
-    // Normalize the kernel
-    float norm = 0.0f;
-    for (int i = 0; i < KSIZE * KSIZE; ++i) norm += h_kernel[i];
-    for (int i = 0; i < KSIZE * KSIZE; ++i) h_kernel[i] /= norm;
+    float *d_input, *d_output, *d_mask;
+    CUDA_CHECK(cudaMalloc(&d_input, bytes));
+    CUDA_CHECK(cudaMalloc(&d_output, bytes));
+    CUDA_CHECK(cudaMalloc(&d_mask, 9 * sizeof(float)));
 
-    // Allocate device memory
-    float *d_in, *d_out;
-    CUDA_CHECK(cudaMalloc(&d_in,  bytes));
-    CUDA_CHECK(cudaMalloc(&d_out, bytes));
+    CUDA_CHECK(cudaMemcpy(d_input, h_input, bytes, cudaMemcpyHostToDevice));
+    CUDA_CHECK(cudaMemcpy(d_mask, h_mask, 9 * sizeof(float), cudaMemcpyHostToDevice));
 
-    // Copy input image and kernel to GPU
-    CUDA_CHECK(cudaMemcpy(d_in, h_in, bytes, cudaMemcpyHostToDevice));
-    CUDA_CHECK(cudaMemcpyToSymbol(d_kernel, h_kernel, sizeof(h_kernel)));
-
-    // Configure launch parameters
     dim3 threads(16, 16);
-    dim3 blocks((WIDTH  + threads.x - 1) / threads.x,
-                (HEIGHT + threads.y - 1) / threads.y);
+    dim3 blocks((WIDTH + threads.x - 1) / threads.x, (HEIGHT + threads.y - 1) / threads.y);
 
-    // Launch and time the kernel
-    cudaEvent_t start, stop;
-    CUDA_CHECK(cudaEventCreate(&start));
-    CUDA_CHECK(cudaEventCreate(&stop));
-    CUDA_CHECK(cudaEventRecord(start));
+    convolution2D<<<blocks, threads>>>(d_input, d_output, d_mask);
+    CUDA_KERNEL_CHECK();
 
-    convolutionKernel<<<blocks, threads>>>(d_in, d_out, WIDTH, HEIGHT);
-    CUDA_CHECK(cudaEventRecord(stop));
-    CUDA_CHECK(cudaEventSynchronize(stop));
+    CUDA_CHECK(cudaMemcpy(h_output, d_output, bytes, cudaMemcpyDeviceToHost));
 
-    float ms = 0.0f;
-    CUDA_CHECK(cudaEventElapsedTime(&ms, start, stop));
-    std::cout << "Convolution kernel time: " << ms << " ms\n";
+    printf("[image_convolution] Image convolution completed successfully.\n");
 
-    // Copy result back to host
-    CUDA_CHECK(cudaMemcpy(h_out, d_out, bytes, cudaMemcpyDeviceToHost));
-    std::cout << "Sample output pixel [0]: " << h_out[0] << std::endl;
-
-    // Clean up
-    CUDA_CHECK(cudaFree(d_in));
-    CUDA_CHECK(cudaFree(d_out));
-    free(h_in);
-    free(h_out);
-
+    CUDA_CHECK(cudaFree(d_input));
+    CUDA_CHECK(cudaFree(d_output));
+    CUDA_CHECK(cudaFree(d_mask));
+    CUDA_CHECK(cudaFreeHost(h_input));
+    CUDA_CHECK(cudaFreeHost(h_output));
+    CUDA_CHECK(cudaFreeHost(h_mask));
     return 0;
 }

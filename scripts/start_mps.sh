@@ -9,6 +9,10 @@ export CUDA_MPS_LOG_DIRECTORY=/tmp/nvidia-log
 rm -rf "$CUDA_MPS_PIPE_DIRECTORY" "$CUDA_MPS_LOG_DIRECTORY"
 mkdir -p "$CUDA_MPS_PIPE_DIRECTORY" "$CUDA_MPS_LOG_DIRECTORY"
 
+echo "Setting GPU to EXCLUSIVE_PROCESS mode..."
+sudo nvidia-smi -c EXCLUSIVE_PROCESS
+sleep 1
+
 echo "Starting MPS control daemon..."
 nvidia-cuda-mps-control -d
 echo "MPS started."
