@@ -1,4 +1,5 @@
 #!/bin/bash
+# run_mixture_light_light_no_mps.sh
 
 set -e
 
@@ -8,14 +9,9 @@ mkdir -p "$RESULTS_DIR"
 
 start_total=$(date +%s.%N)
 
-# Launch 8 vector_add
-for i in {1..8}; do
+# Launch 24 vector_add concurrently
+for i in {1..24}; do
     $SRC_DIR/vector_add > "$RESULTS_DIR/vector_add_$i.log" 2>&1 &
-done
-
-# Launch 8 image_convolution
-for i in {1..8}; do
-    $SRC_DIR/image_convolution > "$RESULTS_DIR/image_convolution_$i.log" 2>&1 &
 done
 
 wait

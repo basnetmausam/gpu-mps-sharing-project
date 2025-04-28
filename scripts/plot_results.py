@@ -6,24 +6,20 @@ RESULTS_DIR = "../results/mixtures"
 PLOTS_DIR = "../plots"
 os.makedirs(PLOTS_DIR, exist_ok=True)
 
-# Mixture categories
-light_workloads = ["light_light"]
+# Mixture categories for each plot
+light_workloads = ["light_light", "many_light_light"]
 heavy_workloads = ["heavy_heavy", "memory_compute", "memory_memory"]
+all_workloads = ["light_light", "heavy_heavy", "memory_compute", "memory_memory"]
+saturated_workloads = ["many_light_light", "many_heavy_heavy"]
 
-# Final overview = light + heavy
-all_workloads = [
-    "light_light",
-    "heavy_heavy",
-    "memory_compute",
-    "memory_memory"
-]
-
-# Mixture descriptive labels
+# Final labels
 MIXTURE_LABELS = {
-    "light_light": "Light (24 × vector_add)",
+    "light_light": "Light-Light (vector_add + vector_add)",
+    "many_light_light": "Saturated-Light (24 × vector_add)",
     "heavy_heavy": "Heavy (matrix_mul + fft)",
     "memory_compute": "Memory + Compute (memory_copy + matrix_mul)",
-    "memory_memory": "Memory (memory_copy + prefix_sum)",
+    "memory_memory": "Memory Only (memory_copy + prefix_sum)",
+    "many_heavy_heavy": "Saturated-Heavy (24 × matrix_mul)",
 }
 
 # Helper function to read times
@@ -56,7 +52,7 @@ def plot_mixtures(mixtures, title, filename):
     x = range(len(mixtures))
     width = 0.35
 
-    fig, ax = plt.subplots(figsize=(10, 6))
+    fig, ax = plt.subplots(figsize=(12, 6))
 
     # Bars
     ax.bar([i - width/2 for i in x], no_mps_times, width=width, label="Without MPS", color=colors["no_mps"], edgecolor='black')
@@ -97,3 +93,6 @@ plot_mixtures(heavy_workloads, "Heavy Workloads: MPS vs No MPS", "heavy_workload
 
 print("\n=== All Mixtures Overview ===")
 plot_mixtures(all_workloads, "All Mixtures Overview: MPS vs No MPS", "all_mixtures_overview.png")
+
+print("\n=== Saturated Workloads ===")
+plot_mixtures(saturated_workloads, "Saturated Workloads: MPS vs No MPS", "saturated_workloads.png")
