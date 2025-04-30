@@ -1,1 +1,1 @@
-CUDA error at src/matrix_mul.cu:33 code=2 "out of memory"
+CUDA error at src/matrix_mul.cu:22 code=2 "out of memory"

@@ -1,1 +1,1 @@
-[matrix_mul] Matrix multiplication completed successfully.
+CUDA error at src/matrix_mul.cu:33 code=2 "out of memory"
