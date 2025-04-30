@@ -110,7 +110,7 @@ For questions or issues, contact:
 
 ## 🔗 Resources
 
-- 📑 Report PDF: [`architecture_project.pdf`](./architecture_project.pdf)
+- 📑 Report PDF: [`architecture_project.pdf`](reports/report.pdf)
 
  
 ## 📜 License
